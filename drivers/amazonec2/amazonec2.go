@@ -33,6 +33,7 @@ type Driver struct {
 	Id              string
 	AccessKey       string
 	SecretKey       string
+	SessionToken    string
 	Region          string
 	AMI             string
 	SSHKeyID        int
@@ -81,6 +82,12 @@ func GetCreateFlags() []cli.Flag {
 			Usage:  "AWS Secret Key",
 			Value:  "",
 			EnvVar: "AWS_SECRET_ACCESS_KEY",
+		},
+		cli.StringFlag{
+			Name:   "amazonec2-session-token",
+			Usage:  "AWS Session Token",
+			Value:  "",
+			EnvVar: "AWS_SESSION_TOKEN",
 		},
 		cli.StringFlag{
 			Name:   "amazonec2-ami",
@@ -135,6 +142,7 @@ func NewDriver(machineName string, storePath string) (drivers.Driver, error) {
 func (d *Driver) SetConfigFromFlags(flags drivers.DriverOptions) error {
 	d.AccessKey = flags.String("amazonec2-access-key")
 	d.SecretKey = flags.String("amazonec2-secret-key")
+	d.SessionToken = flags.String("amazonec2-session-token")
 	d.AMI = flags.String("amazonec2-ami")
 	d.Region = flags.String("amazonec2-region")
 	d.InstanceType = flags.String("amazonec2-instance-type")
@@ -447,7 +455,7 @@ func (d *Driver) GetSSHCommand(args ...string) (*exec.Cmd, error) {
 }
 
 func (d *Driver) getClient() *amz.EC2 {
-	auth := amz.GetAuth(d.AccessKey, d.SecretKey)
+	auth := amz.GetAuth(d.AccessKey, d.SecretKey, d.SessionToken)
 	return amz.NewEC2(auth, d.Region)
 }
 
